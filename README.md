@@ -44,3 +44,16 @@ HSV color space:
             ws2812b_SendHSV(leds, NUM_LEDS);
         }
     }
+
+
+Configuration
+---------------------------
+By default WS2812B connected to PB6, TIM4 CH1.
+
+
+
+Select a Power Source for LEDs
+--------------------------
+The WS2812 requires about 5V to work. It should operate at anywhere between about 4V to 7V, but 5V is readily-available on most boards.
+
+Also consider how much current your LED strip is going to pull. With every single LED on at full brightness, each WS2812 can pull about 60mA (20mA per channel). Even with just ten breakout boards strung together, you’re looking at upwards of a possible 600mA. Yikes! If you’re stringing together a lot of these things, make sure your power supply can provide the necessary current.
