@@ -238,72 +238,55 @@ void ws2812b_Init(void)
     WS2812B_DMA_RCC_ENABLE(); //RCC_AHBPeriphClockCmd(WS2812B_AHB_RCC, ENABLE);
 
     // Initialize GPIO pin
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    //GPIO_StructInit(&GPIO_InitStruct);
-
-    GPIO_InitStruct.GPIO_Pin = WS2812B_GPIO_PIN;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
-
-    GPIO_Init(WS2812B_GPIO, &GPIO_InitStruct);
+    GPIO_InitTypeDef gis; //GPIO_StructInit(&gis);
+    gis.GPIO_Pin = WS2812B_GPIO_PIN;
+    gis.GPIO_Speed = GPIO_Speed_50MHz;
+    gis.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(WS2812B_GPIO, &gis);
 
     // Initialize timer clock
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct;
-
-    //TIM_TimeBaseStructInit(&TIM_TimeBaseInitStruct);
-
-    TIM_TimeBaseInitStruct.TIM_Prescaler = (SystemCoreClock / WS2812B_FREQUENCY) - 1;
-    TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInitStruct.TIM_Period = WS2812B_PERIOD - 1;
-    TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
-
-    TIM_TimeBaseInit(WS2812B_TIM, &TIM_TimeBaseInitStruct);
+    TIM_TimeBaseInitTypeDef timebase; //TIM_TimeBaseStructInit(&timebase);
+    timebase.TIM_Prescaler = (SystemCoreClock / WS2812B_FREQUENCY) - 1;
+    timebase.TIM_CounterMode = TIM_CounterMode_Up;
+    timebase.TIM_Period = WS2812B_PERIOD - 1;
+    timebase.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseInit(WS2812B_TIM, &timebase);
 
     // Initialize timer PWM
-    TIM_OCInitTypeDef TIM_OCInitStruct;
-
-    //TIM_OCStructInit(&TIM_OCInitStruct);
-
-    TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
-    TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStruct.TIM_Pulse = 0;
-    TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
-
-    WS2812B_TIM_OCINIT(WS2812B_TIM, &TIM_OCInitStruct);
+    TIM_OCInitTypeDef outcompare; //TIM_OCStructInit(&outcompare);
+    outcompare.TIM_OCMode = TIM_OCMode_PWM1;
+    outcompare.TIM_OutputState = TIM_OutputState_Enable;
+    outcompare.TIM_Pulse = 0;
+    outcompare.TIM_OCPolarity = TIM_OCPolarity_High;
+    
+    WS2812B_TIM_OCINIT(WS2812B_TIM, &outcompare);
     WS2812B_TIM_OCPRELOAD(WS2812B_TIM, TIM_OCPreload_Enable);
-
+    
     // Initialize DMA channel
-    DMA_InitTypeDef DMA_InitStruct;
-
-    //DMA_StructInit(&DMA_InitStruct);
-
-    DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t) & WS2812B_TIM_DMA_CCR;
-    DMA_InitStruct.DMA_MemoryBaseAddr = (uint32_t) DMABuffer;
-    DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralDST;
-    DMA_InitStruct.DMA_BufferSize = sizeof(DMABuffer) / sizeof(uint16_t);
-    DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-    DMA_InitStruct.DMA_Mode = DMA_Mode_Circular;
-    DMA_InitStruct.DMA_Priority = DMA_Priority_High;
-    DMA_InitStruct.DMA_M2M = DMA_M2M_Disable;
-
-    DMA_Init(WS2812B_DMA_CHANNEL, &DMA_InitStruct);
+    DMA_InitTypeDef dma;  //DMA_StructInit(&DMA_InitStruct);
+    dma.DMA_PeripheralBaseAddr = (uint32_t) & WS2812B_TIM_DMA_CCR;
+    dma.DMA_MemoryBaseAddr     = (uint32_t) DMABuffer;
+    dma.DMA_DIR                = DMA_DIR_PeripheralDST;
+    dma.DMA_BufferSize         = sizeof(DMABuffer) / sizeof(uint16_t);
+    dma.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
+    dma.DMA_MemoryInc          = DMA_MemoryInc_Enable;
+    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+    dma.DMA_MemoryDataSize     = DMA_MemoryDataSize_HalfWord;
+    dma.DMA_Mode               = DMA_Mode_Circular;
+    dma.DMA_Priority           = DMA_Priority_High;
+    dma.DMA_M2M                = DMA_M2M_Disable;
+    DMA_Init(WS2812B_DMA_CHANNEL, &dma);
 
     // Turn on timer DMA requests
     TIM_DMACmd(WS2812B_TIM, WS2812B_TIM_DMA_CC, ENABLE);
 
     // Initialize DMA interrupt
-    NVIC_InitTypeDef NVIC_InitStruct;
-
-    NVIC_InitStruct.NVIC_IRQChannel = WS2812B_DMA_IRQ;
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = WS2812B_IRQ_PRIO;
-    NVIC_InitStruct.NVIC_IRQChannelSubPriority = WS2812B_IRQ_SUBPRIO;
-    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-
-    NVIC_Init(&NVIC_InitStruct);
+    NVIC_InitTypeDef nivc;
+    nivc.NVIC_IRQChannel = WS2812B_DMA_IRQ;
+    nivc.NVIC_IRQChannelPreemptionPriority = WS2812B_IRQ_PRIO;
+    nivc.NVIC_IRQChannelSubPriority = WS2812B_IRQ_SUBPRIO;
+    nivc.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&nivc);
 
     // Enable DMA interrupt
     DMA_ITConfig(WS2812B_DMA_CHANNEL, DMA_IT_HT | DMA_IT_TC, ENABLE);
