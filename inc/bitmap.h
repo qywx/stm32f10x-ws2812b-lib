@@ -39,7 +39,12 @@ struct HSV
 typedef struct RGB RGB_t;
 typedef struct HSV HSV_t;
 
-#define HUE(h)  ({ typeof(h) h1 = h % 360; h1 < 0 ? 360 + h1 : h1; })
+// typeof is GNU C extention and is not portable between compiliers/toolchains
+//#define HUE(h)  ({ typeof(h) h1 = h % 360; h1 < 0 ? 360 + h1 : h1; })
+static inline int16_t HUE( int16_t h ){
+	int16_t h1 = h % 360; 
+	return h1 < 0 ? 360 + h1 : h1;
+}
 
 void HSV2RGB(HSV_t *hsv, RGB_t *rgb);
 

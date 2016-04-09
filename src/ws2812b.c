@@ -20,6 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Requires C99
+
+
 #include <stdint.h>
 #include <string.h>
 
@@ -32,7 +35,11 @@
 // Internal
 //------------------------------------------------------------
 
+// typeof is GNU C extention and is not portable between compiliers/toolchains
+// see http://stackoverflow.com/questions/3437404/min-and-max-in-c, espesially second answer
 #define MIN(a, b)   ({ typeof(a) a1 = a; typeof(b) b1 = b; a1 < b1 ? a1 : b1; })
+//#define MIN(a,b) (((a)<(b))?(a):(b))
+
 
 #if defined(__ICCARM__)
 __packed struct PWM
@@ -225,10 +232,10 @@ void WS2812B_DMA_HANDLER(void)
 void ws2812b_Init(void)
 {
     // Turn on peripheral clock
-    RCC_APB1PeriphClockCmd(WS2812B_APB1_RCC, ENABLE);
-    RCC_APB2PeriphClockCmd(WS2812B_APB2_RCC, ENABLE);
+    WS2812B_TIMx_RCC_ENABLE(); //RCC_APB1PeriphClockCmd(WS2812B_APB1_RCC, ENABLE);
+    WS2812B_GPIO_RCC_ENABLE(); //RCC_APB2PeriphClockCmd(WS2812B_APB2_RCC, ENABLE);
 
-    RCC_AHBPeriphClockCmd(WS2812B_AHB_RCC, ENABLE);
+    WS2812B_DMA_RCC_ENABLE(); //RCC_AHBPeriphClockCmd(WS2812B_AHB_RCC, ENABLE);
 
     // Initialize GPIO pin
     GPIO_InitTypeDef GPIO_InitStruct;
