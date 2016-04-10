@@ -253,7 +253,7 @@ void ws2812b_Init(void)
     TIM_TimeBaseInit(WS2812B_TIM, &timebase);
 
     // Initialize timer PWM
-    TIM_OCInitTypeDef outcompare; //TIM_OCStructInit(&outcompare);
+    TIM_OCInitTypeDef outcompare; TIM_OCStructInit(&outcompare);
     outcompare.TIM_OCMode = TIM_OCMode_PWM1;
     outcompare.TIM_OutputState = TIM_OutputState_Enable;
     outcompare.TIM_Pulse = 0;
