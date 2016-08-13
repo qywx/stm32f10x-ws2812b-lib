@@ -58,7 +58,7 @@
 #define WS2812B_DMA_IT_TC       DMA1_IT_TC4   /// Transfer complete interrupt flag, number is channel
 #define WS2812B_DMA_IT_HT       DMA1_IT_HT4   /// Half-transfer interrupt flag, number is channel
 
-#define WS2812B_IRQ_PRIO        0
+#define WS2812B_IRQ_PRIO        1
 #define WS2812B_IRQ_SUBPRIO     0
 
 #define WS2812B_FREQUENCY       24000000

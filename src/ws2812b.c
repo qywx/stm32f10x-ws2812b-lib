@@ -24,6 +24,7 @@
 
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "bitmap.h"
@@ -151,7 +152,9 @@ static void SrcFilterHSV(void **src, PWM_t **pwm, unsigned *count, unsigned size
     *pwm = p;
 }
 
-static void DMASend(SrcFilter_t *filter, void *src, unsigned count)
+
+///\return 0 - OK, 1 - DMA is busy 
+static int DMASend(SrcFilter_t *filter, void *src, unsigned count)
 {
     if (!DMABusy)
     {
@@ -179,9 +182,17 @@ static void DMASend(SrcFilter_t *filter, void *src, unsigned count)
 
         TIM_Cmd(WS2812B_TIM, ENABLE);
         DMA_Cmd(WS2812B_DMA_CHANNEL, ENABLE);
+        
+        return 0;
+    }
+    else 
+    {
+    	return 1; // DMA busy
     }
 }
 
+
+/// 
 static void DMASendNext(PWM_t *pwm, PWM_t *end)
 {
     if (!DMAFilter)
@@ -210,6 +221,8 @@ static void DMASendNext(PWM_t *pwm, PWM_t *end)
     }
 }
 
+
+/// Interrupt handler for DMA channel
 void WS2812B_DMA_HANDLER(void)
 {
     if (DMA_GetITStatus(WS2812B_DMA_IT_HT) != RESET)
@@ -238,14 +251,14 @@ void ws2812b_Init(void)
     WS2812B_DMA_RCC_ENABLE(); //RCC_AHBPeriphClockCmd(WS2812B_AHB_RCC, ENABLE);
 
     // Initialize GPIO pin
-    GPIO_InitTypeDef gis; //GPIO_StructInit(&gis);
-    gis.GPIO_Pin = WS2812B_GPIO_PIN;
+    GPIO_InitTypeDef gis; GPIO_StructInit(&gis);
+    gis.GPIO_Pin   = WS2812B_GPIO_PIN;
     gis.GPIO_Speed = GPIO_Speed_50MHz;
-    gis.GPIO_Mode = GPIO_Mode_AF_PP;
+    gis.GPIO_Mode  = GPIO_Mode_AF_PP;
     GPIO_Init(WS2812B_GPIO, &gis);
 
     // Initialize timer clock
-    TIM_TimeBaseInitTypeDef timebase; //TIM_TimeBaseStructInit(&timebase);
+    TIM_TimeBaseInitTypeDef timebase; TIM_TimeBaseStructInit(&timebase);
     timebase.TIM_Prescaler = (SystemCoreClock / WS2812B_FREQUENCY) - 1;
     timebase.TIM_CounterMode = TIM_CounterMode_Up;
     timebase.TIM_Period = WS2812B_PERIOD - 1;
@@ -292,16 +305,22 @@ void ws2812b_Init(void)
     DMA_ITConfig(WS2812B_DMA_CHANNEL, DMA_IT_HT | DMA_IT_TC, ENABLE);
 }
 
-inline int ws2812b_IsReady(void)
+
+///\return true if DMA is not busy
+inline bool ws2812b_IsReady(void)
 {
     return !DMABusy;
 }
 
+
+/// Send RGB-coded color to `count` LEDs
 void ws2812b_SendRGB(RGB_t *rgb, unsigned count)
 {
     DMASend(&SrcFilterRGB, rgb, count);
 }
 
+
+/// Send HSV-coded color to `count` LEDs
 void ws2812b_SendHSV(HSV_t *hsv, unsigned count)
 {
     DMASend(&SrcFilterHSV, hsv, count);
